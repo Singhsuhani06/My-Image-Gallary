@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Suhaniee's Image Gallery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --panel-max-width: 1200px;
+      --panel-bg: rgba(255,255,255,0.82);
+      --accent: #000;
+    }
+    * { box-sizing: border-box; }
+    html,body { height: 100%; margin: 0; font-family: Inter, system-ui, Arial, sans-serif; }
+
+    body {
+      min-height: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 28px;
+      background: url('images/background.jpg.jpg') center/cover no-repeat fixed;
+      background-color: #f2f4f6;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: inherit;
+      filter: blur(8px) saturate(.95) brightness(.9);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .panel {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: var(--panel-max-width);
+      background: var(--panel-bg);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 28px rgba(10,10,20,0.12);
+      backdrop-filter: blur(6px) saturate(1.05);
+    }
+
+    .logo-svg { display: block; width: 100%; height: 140px; margin-bottom: 6px; }
+    .logo-svg text { font-family: 'Brush Script MT', cursive; font-size: 80px; fill: var(--accent); }
+
+    /* Simple box style for Category headings */
+    .category-heading {
+      display: inline-block;
+      padding: 6px 14px;
+      margin: 10px 0 14px 0;
+      border: 2px solid #000;
+      border-radius: 6px;
+      font-size: 20px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.6);
+      font-family: 'Lobster', cursive;
+      letter-spacing: 1px;
+      color: #2c3e50;
+    }
+
+    .carousel-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .carousel-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: white;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      font-size: 26px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+    .carousel-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    .carousel-viewport {
+      flex: 1 1 auto;
+      overflow: hidden;
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(255,255,255,0.6);
+    }
+
+    .carousel-track {
+      display: flex;
+      align-items: stretch;
+      transition: transform 320ms ease;
+      will-change: transform;
+    }
+
+    .slide {
+      padding: 6px;
+      flex: 0 0 auto;
+    }
+    .slide img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+      transition: transform 220ms ease;
+    }
+    .slide img:hover { transform: scale(1.03); }
+
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.78);
+      z-index: 9999;
+    }
+    #lightbox img { max-width: 92%; max-height: 82%; border-radius: 8px; }
+    #close { position: absolute; top: 22px; right: 30px; color: white; font-size: 34px; cursor: pointer; }
+    #prev-lightbox, #next-lightbox { position: absolute; top: 50%; transform: translateY(-50%); color: white; font-size: 44px; cursor: pointer; }
+    #prev-lightbox { left: 18px; } #next-lightbox { right: 18px; }
+
+    @media (max-width: 900px) { .slide img { height: 180px; } }
+    @media (max-width: 480px) {
+      .slide img { height: 140px; }
+      .carousel-btn { width:40px; height:40px; font-size:20px; }
+      .logo-svg text { font-size:54px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="panel">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 150">
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">
+        Suhaniee's Image Gallery
+      </text>
+    </svg>
+
+    <!-- Landscape Category -->
+    <h2 class="category-heading">Landscape</h2>
+    <div class="carousel-wrapper" id="landscape-carousel">
+      <button class="carousel-btn" id="prev-carousel">‹</button>
+      <div class="carousel-viewport" id="carousel-viewport-landscape">
+        <div class="carousel-track" id="carousel-track-landscape"></div>
+      </div>
+      <button class="carousel-btn" id="next-carousel">›</button>
+    </div>
+
+    <!-- Street Category (below Landscape) -->
+    <h2 class="category-heading">Street</h2>
+    <div class="carousel-wrapper" id="street-carousel">
+      <button class="carousel-btn" id="prev-carousel-street">‹</button>
+      <div class="carousel-viewport" id="carousel-viewport-street">
+        <div class="carousel-track" id="carousel-track-street"></div>
+      </div>
+      <button class="carousel-btn" id="next-carousel-street">›</button>
+    </div>
+  </div>
+
+  <div id="lightbox">
+    <div id="close">&times;</div>
+    <img id="lightbox-img" src="" alt="">
+    <div id="prev-lightbox">&#10094;</div>
+    <div id="next-lightbox">&#10095;</div>
+  </div>
+
+  <script>
+    // Images
+    const landscapeImages = [];
+    for (let i = 1; i <= 8; i++) {
+      landscapeImages.push(`images/pic${i}.jpg.jpg`);
+    }
+    const streetImages = [];
+    for (let i = 9; i <= 16; i++) {
+      streetImages.push(`images/pic${i}.jpg.jpg`);
+    }
+
+    // Carousel variables
+    function createCarousel(trackId, images) {
+      const viewport = document.getElementById(trackId).parentElement;
+      const track = document.getElementById(trackId);
+      let visibleCount = window.innerWidth >= 1200 ? 5 : window.innerWidth >= 768 ? 3 : 1;
+      let startIndex = 0;
+      let isAnimating = false;
+
+      function slideWidthPx() { return Math.floor(viewport.clientWidth / visibleCount); }
+
+      function renderSlides() {
+        track.innerHTML = '';
+        for (let i = startIndex; i < Math.min(startIndex + visibleCount + 1, images.length); i++) {
+          const slide = document.createElement('div');
+          slide.className = 'slide';
+          slide.style.width = `${slideWidthPx()}px`;
+          const img = document.createElement('img');
+          img.dataset.index = i;
+          img.src = images[i];
+          img.onerror = function () { if (!this._triedAlt) { this._triedAlt=true; this.src=images[i].replace('.jpg.jpg','.jpg'); } };
+          img.addEventListener('click', () => openLightbox(i, images));
+          slide.appendChild(img);
+          track.appendChild(slide);
+        }
+      }
+
+      function goNext() {
+        if (isAnimating || startIndex >= images.length - visibleCount) return;
+        isAnimating = true;
+        startIndex++;
+        renderSlides();
+        isAnimating = false;
+      }
+      function goPrev() {
+        if (isAnimating || startIndex <= 0) return;
+        isAnimating = true;
+        startIndex--;
+        renderSlides();
+        isAnimating = false;
+      }
+
+      viewport.parentElement.querySelector('.carousel-btn:first-child').addEventListener('click', goPrev);
+      viewport.parentElement.querySelector('.carousel-btn:last-child').addEventListener('click', goNext);
+
+      window.addEventListener('resize', () => {
+        visibleCount = window.innerWidth >= 1200 ? 5 : window.innerWidth >= 768 ? 3 : 1;
+        startIndex = Math.min(startIndex, images.length - visibleCount);
+        renderSlides();
+      });
+
+      renderSlides();
+    }
+
+    // Lightbox
+    const lightbox = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    let currentLightboxImages = [];
+    let lightboxIndex = 0;
+
+    function openLightbox(index, images) {
+      lightbox.style.display = 'flex';
+      currentLightboxImages = images;
+      lightboxIndex = index;
+      lbImg.src = images[index];
+    }
+    document.getElementById('close').addEventListener('click', ()=> lightbox.style.display='none');
+    document.getElementById('prev-lightbox').addEventListener('click', ()=>{
+      lightboxIndex = (lightboxIndex-1 + currentLightboxImages.length)%currentLightboxImages.length;
+      lbImg.src = currentLightboxImages[lightboxIndex];
+    });
+    document.getElementById('next-lightbox').addEventListener('click', ()=>{
+      lightboxIndex = (lightboxIndex+1)%currentLightboxImages.length;
+      lbImg.src = currentLightboxImages[lightboxIndex];
+    });
+
+    // Initialize carousels
+    createCarousel('carousel-track-landscape', landscapeImages);
+    createCarousel('carousel-track-street', streetImages);
+
+  </script>
+</body>
+</html>
